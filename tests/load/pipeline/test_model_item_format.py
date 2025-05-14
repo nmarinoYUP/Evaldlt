@@ -62,6 +62,7 @@ def test_simple_incremental(destination_config: DestinationTestConfiguration) ->
     pipeline.run(
         [{"a": i, "b": i + 1} for i in range(10)],
         table_name="example_table",
+        **destination_config.run_kwargs,
     )
     dataset = pipeline.dataset()
 
@@ -98,6 +99,7 @@ def test_aliased_column(destination_config: DestinationTestConfiguration) -> Non
     pipeline.run(
         [{"a": i, "b": i + 1} for i in range(10)],
         table_name="example_table",
+        **destination_config.run_kwargs,
     )
 
     dataset = pipeline.dataset()
@@ -127,7 +129,11 @@ def test_aliased_column(destination_config: DestinationTestConfiguration) -> Non
             hints=make_hints(columns={k: v for k, v in example_table_columns.items() if k != "a"}),
         )
 
-    pipeline.run([copied_table_with_a_as_b()])
+    pipeline.run(
+        [copied_table_with_a_as_b()],
+        loader_file_format="model",
+        table_format=destination_config.run_kwargs["table_format"],
+    )
 
     assert load_table_counts(pipeline, "copied_table_with_a_as_b", "example_table") == {
         "copied_table_with_a_as_b": 10,
@@ -167,6 +173,7 @@ def test_simple_model_jobs(destination_config: DestinationTestConfiguration) -> 
     pipeline.run(
         [{"a": i, "b": i + 1} for i in range(10)],
         table_name="example_table",
+        **destination_config.run_kwargs,
     )
     dataset = pipeline.dataset()
 
@@ -205,7 +212,11 @@ def test_simple_model_jobs(destination_config: DestinationTestConfiguration) -> 
         )
 
     # run sql jobs
-    pipeline.run([copied_table_no_b(), reversed_table(), copied_table()])
+    pipeline.run(
+        [copied_table_no_b(), reversed_table(), copied_table()],
+        loader_file_format="model",
+        table_format=destination_config.run_kwargs["table_format"],
+    )
 
     # Validate row counts for all tables
     assert load_table_counts(
@@ -276,12 +287,14 @@ def test_write_dispositions(
         primary_key="a",
         table_name="example_table_1",
         write_disposition=write_disposition,
+        **destination_config.run_kwargs,
     )
     pipeline.run(
         [{"a": i + 1} for i in range(10)],
         primary_key="a",
         table_name="example_table_2",
         write_disposition=write_disposition,
+        **destination_config.run_kwargs,
     )
 
     # we now run a select of items 3-10 from example_table_2 into example_table_1
@@ -311,7 +324,11 @@ def test_write_dispositions(
             hints=make_hints(columns=example_table_columns),
         )
 
-    pipeline.run([copied_table()])
+    pipeline.run(
+        [copied_table()],
+        loader_file_format="model",
+        table_format=destination_config.run_kwargs["table_format"],
+    )
 
     # Snowflake is typin sensitive
     if destination_config.destination_type == "snowflake":
@@ -348,7 +365,9 @@ def test_multiple_statements_per_resource(destination_config: DestinationTestCon
         f"test_multiple_statments_per_resource_{uniq_id()}", dev_mode=False
     )
 
-    pipeline.run([{"a": i} for i in range(10)], table_name="example_table")
+    pipeline.run(
+        [{"a": i} for i in range(10)], table_name="example_table", **destination_config.run_kwargs
+    )
     dataset = pipeline.dataset()
 
     example_table_columns = dataset.schema.tables["example_table"]["columns"]
@@ -371,7 +390,11 @@ def test_multiple_statements_per_resource(destination_config: DestinationTestCon
             hints=make_hints(columns=example_table_columns),
         )
 
-    pipeline.run([copied_table()])
+    pipeline.run(
+        [copied_table()],
+        loader_file_format="model",
+        table_format=destination_config.run_kwargs["table_format"],
+    )
 
     assert load_table_counts(pipeline, "copied_table", "example_table") == {
         "copied_table": 12,
