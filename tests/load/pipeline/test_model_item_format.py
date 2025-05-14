@@ -43,6 +43,8 @@ destination_configs = [
     for config in (
         destinations_configs(default_sql_configs=True, subset=[dest], with_table_format="iceberg")
         or destinations_configs(default_sql_configs=True, subset=[dest])
+        if dest == "athena"
+        else destinations_configs(default_sql_configs=True, subset=[dest])
     )
 ]
 
