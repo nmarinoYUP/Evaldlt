@@ -5,19 +5,12 @@ import sqlglot
 import sqlglot.expressions as sge
 from sqlglot.dialects.dialect import DialectType
 from sqlglot.errors import ParseError, OptimizeError
-from sqlglot.schema import Schema as SQLGlotSchema, ensure_schema
+from sqlglot.schema import Schema as SQLGlotSchema
 from sqlglot.optimizer.annotate_types import annotate_types
 from sqlglot.optimizer.qualify import qualify
 
-from dlt.destinations.sql_client import SqlClientBase
-
-from dlt.common.libs.sqlglot import (
-    to_sqlglot_type,
-    from_sqlglot_type,
-    set_metadata,
-    get_metadata,
-)
-from dlt.common.schema import Schema
+from dlt.common.libs.sqlglot import from_sqlglot_type, get_metadata, dlt_schema_to_sqlglot_schema
+from dlt.common.schema.schema import Schema
 from dlt.common.schema.typing import (
     TTableSchemaColumns,
     TColumnSchema,
@@ -34,40 +27,12 @@ def create_sqlglot_schema(
     dialect: Optional[DialectType] = "duckdb",
 ) -> SQLGlotSchema:
     """Create an SQLGlot schema using a dlt Schema and the destination capabilities.
-
     The SQLGlot schema automatically scopes the tables to the `dataset_name`.
     This can allow cross-dataset transformations on the same physical location.
     No name translation nor case folding is performing. All identifiers correspond
     to identifiers in dlt schema.
     """
-
-    sqlglot_schema = {}  # MappingSchema(empty_schema, normalize=False)
-
-    for table_name in schema.tables.keys():
-        column_mapping = {}
-        # skip not materialized columns
-        for column_name, column in schema.get_table_columns(
-            table_name, include_incomplete=False
-        ).items():
-            sqlglot_type = to_sqlglot_type(
-                dlt_type=column["data_type"],
-                nullable=column.get("nullable"),
-                precision=column.get("precision"),
-                scale=column.get("scale"),
-                timezone=column.get("timezone"),
-            )
-            sqlglot_type = set_metadata(sqlglot_type, column)
-            # column_name = sql_client.capabilities.casefold_identifier(column_name)
-            column_mapping[column_name] = sqlglot_type
-        # skip tables without columns
-        if column_mapping:
-            # table_name = sql_client.make_qualified_table_name_path(table_name, quote=False, casefold=False)[-1]
-            sqlglot_schema[table_name] = column_mapping
-
-    # ensure proper nesting with db and catalog
-    nested_schema = {dataset_name: sqlglot_schema}
-
-    return ensure_schema(nested_schema, dialect=dialect, normalize=False)
+    return dlt_schema_to_sqlglot_schema(schema=schema, dataset_name=dataset_name, dialect=dialect)
 
 
 # NOTE even if `infer_sqlglot_schema=True`, some queries can have undetermined final columns
