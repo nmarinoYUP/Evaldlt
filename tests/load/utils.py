@@ -365,6 +365,16 @@ def destinations_configs(
                 destination_name="sqlalchemy_sqlite",
                 credentials="sqlite:///_storage/dl_data.sqlite",
             ),
+            DestinationTestConfiguration(
+                destination_type="sqlalchemy",
+                supports_merge=True,
+                supports_dbt=False,
+                destination_name="sqlalchemy_oracle",
+                credentials=(
+                    "oracle+oracledb://system:Str0ngPass!@localhost:1521/?service_name=FREEPDB1"
+                )
+
+            )
             # TODO: enable in sql alchemy destination test, 99% of tests work
             # DestinationTestConfiguration(
             #     destination_type="sqlalchemy",

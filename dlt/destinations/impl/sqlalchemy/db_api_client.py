@@ -256,6 +256,10 @@ class SqlalchemyClient(SqlClientBase[Connection]):
     def create_dataset(self) -> None:
         if self.dialect_name == "sqlite":
             return self._sqlite_create_dataset(self.dataset_name)
+        elif self.dialect_name == "oracle":
+            self.execute_sql(f'CREATE USER {self.dataset_name} IDENTIFIED BY "{self.credentials.password}"')
+            self.execute_sql(f"ALTER USER {self.dataset_name} QUOTA UNLIMITED ON users")
+            return
         self.execute_sql(sa.schema.CreateSchema(self.dataset_name))
 
     def drop_dataset(self) -> None:
@@ -409,7 +413,7 @@ class SqlalchemyClient(SqlClientBase[Connection]):
         if isinstance(e, sa.exc.NoSuchTableError):
             return DatabaseUndefinedRelation(e)
         msg = str(e).lower()
-        if isinstance(e, (sa.exc.ProgrammingError, sa.exc.OperationalError)):
+        if isinstance(e, (sa.exc.ProgrammingError, sa.exc.OperationalError, sa.exc.DatabaseError)):
             patterns = [
                 # MySQL / MariaDB
                 r"unknown database",  # Missing schema
@@ -424,7 +428,7 @@ class SqlalchemyClient(SqlClientBase[Connection]):
                 # MSSQL
                 r"invalid object name",  # Missing schema or table
                 # Oracle
-                r"ora-00942: table or view does not exist",  # Missing schema or table
+                r"ORA-00942: table or view",  # Missing schema or table
                 # SAP HANA
                 r"invalid schema name",  # Missing schema
                 r"invalid table name",  # Missing table

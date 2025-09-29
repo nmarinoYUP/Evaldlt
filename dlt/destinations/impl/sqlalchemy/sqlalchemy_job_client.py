@@ -319,13 +319,16 @@ class SqlalchemyJobClient(SqlJobClientWithStagingDataset):
             .order_by(loads_table_obj.c[c_load_id].desc())
         )
 
-        with self.sql_client.execute_query(query) as cur:
-            row = cur.fetchone()
-            if not row:
-                return None
-            mapping = dict(row._mapping)  # type: ignore[attr-defined]
+        with suppress(DatabaseUndefinedRelation):
+            with self.sql_client.execute_query(query) as cur:
+                row = cur.fetchone()
+                if not row:
+                    return None
+                mapping = dict(row._mapping)  # type: ignore[attr-defined]
 
-        return StateInfo.from_normalized_mapping(mapping, self.schema.naming)
+                return StateInfo.from_normalized_mapping(mapping, self.schema.naming)
+
+        return None
 
     def _from_db_type(
         self, db_type: str, precision: Optional[int], scale: Optional[int]
