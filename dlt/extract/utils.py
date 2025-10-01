@@ -43,6 +43,7 @@ from dlt.extract.items import (
     TFunHintTemplate,
     SupportsPipe,
 )
+from dlt.extract.history import History, EMPTY_HISTORY
 
 from dlt.common.schema.typing import TFileFormat
 
@@ -169,20 +170,30 @@ def simulate_func_call(
     return sig, no_item_sig, bound_args
 
 
-def check_compat_transformer(name: str, f: AnyFun, sig: inspect.Signature) -> inspect.Parameter:
+def check_compat_transformer(
+    name: str, f: AnyFun, sig: inspect.Signature
+) -> Tuple[Optional[inspect.Parameter], Optional[inspect.Parameter]]:
     sig_arg_count = len(sig.parameters)
     callable_name = get_callable_name(f)
+    d = {}
+
     if sig_arg_count == 0:
         raise InvalidStepFunctionArguments(name, callable_name, sig, "Function takes no arguments")
 
-    # see if meta is present in kwargs
-    meta_arg = next((p for p in sig.parameters.values() if p.name == "meta"), None)
-    if meta_arg is not None:
-        if meta_arg.kind not in (meta_arg.KEYWORD_ONLY, meta_arg.POSITIONAL_OR_KEYWORD):
-            raise InvalidStepFunctionArguments(
-                name, callable_name, sig, "'meta' cannot be pos only argument '"
-            )
-    return meta_arg
+    # Validate `meta` and `history` arguments if present
+    for param_name in ("meta", "history"):
+        param = sig.parameters.get(param_name)
+        if param is not None:
+            if param.kind not in (param.KEYWORD_ONLY, param.POSITIONAL_OR_KEYWORD):
+                raise InvalidStepFunctionArguments(
+                    name,
+                    callable_name,
+                    sig,
+                    f"'{param_name}' cannot be pos only argument ",
+                )
+            d[param_name] = param
+
+    return d.get("meta"), d.get("history")
 
 
 def wrap_iterator(gen: Iterator[TDataItems]) -> Iterator[TDataItems]:
@@ -284,7 +295,9 @@ def wrap_parallel_iterator(f: TAnyFunOrGenerator) -> TAnyFunOrGenerator:
     return _gen_wrapper()  # type: ignore[return-value]
 
 
-def _transformer_compat(item: TDataItems, meta: Any = None) -> Any:
+def _transformer_compat(
+    item: TDataItems, meta: Any = None, history: History = EMPTY_HISTORY
+) -> Any:
     pass
 
 
@@ -294,19 +307,24 @@ _transformer_compat_sig = inspect.signature(_transformer_compat)
 def wrap_compat_transformer(
     name: str, f: AnyFun, sig: inspect.Signature, *args: Any, **kwargs: Any
 ) -> AnyFun:
-    """Creates a compatible wrapper over transformer function. A pure transformer function expects data item in first argument and one keyword argument called `meta`"""
+    """Creates a compatible wrapper over transformer function. A pure transformer function expects data item in first argument and optional keyword arguments like `meta`, `history`."""
+
     check_compat_transformer(name, f, sig)
-    if len(sig.parameters) == 2 and "meta" in sig.parameters:
+
+    # If already compatible with meta and history, return as-is
+    param_names = list(sig.parameters.keys())
+    if "meta" in param_names and "history" in param_names and len(param_names) == 3:
         return f
 
-    def _tx_partial(item: TDataItems, meta: Any = None) -> Any:
-        # print(f"_ITEM:{item}{meta},{args}{kwargs}")
-        # also provide optional meta so pipe does not need to update arguments
+    def _tx_partial(item: TDataItems, meta: Any = None, history: History = EMPTY_HISTORY) -> Any:
+        # Inject into kwargs if expected
         if "meta" in kwargs:
             kwargs["meta"] = meta
+        if "history" in kwargs:
+            kwargs["history"] = history
         return f(item, *args, **kwargs)
 
-    # this partial wraps transformer and sets a signature that is compatible with pipe transform calls
+    # Patch the wrapper’s signature so other systems (like inspect) behave
     _wrapper = wraps(f)(_tx_partial)
     setattr(_wrapper, "__signature__", _transformer_compat_sig)
     return _wrapper

@@ -14,6 +14,7 @@ from dlt.extract.items import DataItemWithMeta
 from dlt.extract.items_transform import FilterItem, MapItem, YieldMapItem
 from dlt.extract.pipe import Pipe
 from dlt.extract.pipe_iterator import PipeIterator, ManagedPipeIterator, PipeItem
+from dlt.extract.history import EMPTY_HISTORY
 
 
 def test_next_item_mode() -> None:
@@ -124,24 +125,25 @@ def test_add_step() -> None:
         assert item in data
         return item
 
-    def item_meta_step(item, meta):
+    def item_meta_step(item, meta, history):
         assert item in data
         assert meta is None
+        assert history is EMPTY_HISTORY
         return item
 
     p.append_step(item_step)
     p.append_step(item_meta_step)
     assert p.gen is data_iter
     assert p._gen_idx == 0
-    assert p.tail is item_meta_step
-    assert p.tail(3, None) == 3  # type: ignore[call-arg, operator]
+    assert p.tail == item_meta_step
+    assert p.tail(3, None, EMPTY_HISTORY) == 3  # type: ignore[call-arg, operator]
     # the middle step should be wrapped
     mid = p.steps[1]
     assert mid is not item_step
     sig = inspect.signature(mid)  # type: ignore[arg-type]
 
     # includes meta
-    assert len(sig.parameters) == 2
+    assert len(sig.parameters) == 3
     # meta is ignored
     assert mid(2) == 2  # type: ignore[operator, call-arg]
     assert mid(2, meta="META>") == 2  # type: ignore[operator, call-arg]
@@ -228,7 +230,7 @@ def test_insert_remove_step() -> None:
     # _l = list(PipeIterator.from_pipe(p))
     # assert [pi.item for pi in _l] == [2, 4, 6]
 
-    def tx_minus(item, meta):
+    def tx_minus(item, meta, history):
         assert meta is None
         yield item * -4
 
@@ -620,7 +622,7 @@ def test_clone_single_pipe() -> None:
 
 
 def test_clone_pipes() -> None:
-    def pass_gen(item, meta):
+    def pass_gen(item, meta, history):
         yield item * 2
 
     data = [1, 2, 3]
@@ -667,7 +669,7 @@ def assert_cloned_pipes(pipes: List[Pipe], cloned_pipes: List[Pipe]) -> None:
 
 
 def test_circular_deps() -> None:
-    def pass_gen(item, meta):
+    def pass_gen(item, meta, history):
         yield item * 2
 
     c_p1_p3 = Pipe("c_p1_p3", [pass_gen])
