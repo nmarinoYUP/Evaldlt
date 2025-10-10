@@ -238,8 +238,9 @@ class Schema:
             if column_name.startswith(self._dlt_tables_prefix):
                 continue
             is_variant = column.get("variant", False)
+            is_complete = utils.is_complete_column(column)
             # new column and contract prohibits that
-            if column_mode != "evolve" and not is_variant:
+            if column_mode != "evolve" and not is_variant and is_complete:
                 if raise_on_freeze and column_mode == "freeze":
                     raise DataValidationError(
                         self.name,
