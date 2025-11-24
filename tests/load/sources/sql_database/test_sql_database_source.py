@@ -1407,6 +1407,20 @@ def test_query_adapter_callback(
     assert_row_counts(pipeline, postgres_db, ["chat_message"])
 
 
+def test_end_value_non_incremental(postgres_db: PostgresSourceDB) -> None:
+    read_table = sql_table(
+        table="chat_channel",
+        credentials=postgres_db.credentials,
+        schema=postgres_db.schema,
+        reflection_level="full",
+        incremental=dlt.sources.incremental("updated_at", end_value=None),
+    )
+
+    pipeline = make_pipeline("duckdb")
+    info = pipeline.run(read_table)
+    assert_load_info(info)
+
+
 def assert_row_counts(
     pipeline: dlt.Pipeline,
     postgres_db: PostgresSourceDB,
