@@ -18,7 +18,8 @@ class CreateScriptRequest:
         entry_point (str): The entry point of the script. Will usually be the path to a python file in the uploaded
             tarball
         name (str): The name of the script
-        script_type (ScriptType):
+        script_type (ScriptType): The type of the script. Use 'batch' for batch pipelines and 'interactive' for
+            notebooks
         active (Union[Unset, bool]): Whether the script is active Default: True.
         profile (Union[None, Unset, str]): The name of the profile to use for the script
         schedule (Union[None, Unset, str]): The schedule of the script. Use 'cron' format for cron jobs

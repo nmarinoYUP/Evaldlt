@@ -26,13 +26,17 @@ class ScriptResponse:
             tarball
         id (UUID): The uniqueID of the entity
         name (str): The name of the script
-        script_type (ScriptType):
+        script_type (ScriptType): The type of the script. Use 'batch' for batch pipelines and 'interactive' for
+            notebooks
         script_url (str): The URL where the script can be accessed if interactive
         version (int): The current version of the profile
         workspace_id (UUID): The ID of the workspace the script belongs to
         next_scheduled_run (Union[None, Unset, datetime.datetime]): The next scheduled run of the script, is None if no
             schedule is set
         profile (Union[None, Unset, str]): The name of the profile to use for the script
+        public_secret (Union[None, UUID, Unset]): The secret UUID used to generate the public URL for this script
+        public_url (Union[None, Unset, str]): The public URL where the script can be accessed without authentication, is
+            None if not enabled
         schedule (Union[None, Unset, str]): The schedule of the script. Use 'cron' format for cron jobs
     """
 
@@ -50,6 +54,8 @@ class ScriptResponse:
     workspace_id: UUID
     next_scheduled_run: Union[None, Unset, datetime.datetime] = UNSET
     profile: Union[None, Unset, str] = UNSET
+    public_secret: Union[None, UUID, Unset] = UNSET
+    public_url: Union[None, Unset, str] = UNSET
     schedule: Union[None, Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -92,6 +98,20 @@ class ScriptResponse:
         else:
             profile = self.profile
 
+        public_secret: Union[None, Unset, str]
+        if isinstance(self.public_secret, Unset):
+            public_secret = UNSET
+        elif isinstance(self.public_secret, UUID):
+            public_secret = str(self.public_secret)
+        else:
+            public_secret = self.public_secret
+
+        public_url: Union[None, Unset, str]
+        if isinstance(self.public_url, Unset):
+            public_url = UNSET
+        else:
+            public_url = self.public_url
+
         schedule: Union[None, Unset, str]
         if isinstance(self.schedule, Unset):
             schedule = UNSET
@@ -120,6 +140,10 @@ class ScriptResponse:
             field_dict["next_scheduled_run"] = next_scheduled_run
         if profile is not UNSET:
             field_dict["profile"] = profile
+        if public_secret is not UNSET:
+            field_dict["public_secret"] = public_secret
+        if public_url is not UNSET:
+            field_dict["public_url"] = public_url
         if schedule is not UNSET:
             field_dict["schedule"] = schedule
 
@@ -178,6 +202,32 @@ class ScriptResponse:
 
         profile = _parse_profile(d.pop("profile", UNSET))
 
+        def _parse_public_secret(data: object) -> Union[None, UUID, Unset]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                public_secret_type_0 = UUID(data)
+
+                return public_secret_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[None, UUID, Unset], data)
+
+        public_secret = _parse_public_secret(d.pop("public_secret", UNSET))
+
+        def _parse_public_url(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        public_url = _parse_public_url(d.pop("public_url", UNSET))
+
         def _parse_schedule(data: object) -> Union[None, Unset, str]:
             if data is None:
                 return data
@@ -202,6 +252,8 @@ class ScriptResponse:
             workspace_id=workspace_id,
             next_scheduled_run=next_scheduled_run,
             profile=profile,
+            public_secret=public_secret,
+            public_url=public_url,
             schedule=schedule,
         )
 

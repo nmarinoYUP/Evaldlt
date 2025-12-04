@@ -27,7 +27,8 @@ class ScriptVersionResponse:
         id (UUID): The uniqueID of the entity
         name (str): The name of the script
         script_id (UUID): The ID of the script the script version belongs to
-        script_type (ScriptType):
+        script_type (ScriptType): The type of the script. Use 'batch' for batch pipelines and 'interactive' for
+            notebooks
         version (int): The current version of the profile
         profile (Union[None, Unset, str]): The name of the profile to use for the script
         schedule (Union[None, Unset, str]): The schedule of the script. Use 'cron' format for cron jobs

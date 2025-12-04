@@ -7,11 +7,11 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.create_run_request import CreateRunRequest
+from ...models.detailed_run_response import DetailedRunResponse
 from ...models.error_response_400 import ErrorResponse400
 from ...models.error_response_401 import ErrorResponse401
 from ...models.error_response_403 import ErrorResponse403
 from ...models.error_response_404 import ErrorResponse404
-from ...models.run_response import RunResponse
 from ...types import UNSET, Response
 
 
@@ -40,10 +40,12 @@ def _get_kwargs(
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
 ) -> Optional[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     if response.status_code == 201:
-        response_201 = RunResponse.from_dict(response.json())
+        response_201 = DetailedRunResponse.from_dict(response.json())
 
         return response_201
 
@@ -76,7 +78,9 @@ def _parse_response(
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
 ) -> Response[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     return Response(
         status_code=HTTPStatus(response.status_code),
@@ -92,7 +96,9 @@ def sync_detailed(
     client: Union[AuthenticatedClient, Client],
     body: CreateRunRequest,
 ) -> Response[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     """CreateRun
 
@@ -101,7 +107,17 @@ def sync_detailed(
     associated with the script version will be used, of which
     the latest profile_version will be used. You may specify a specific profile to use.
 
-    Requires WRITE permission on the organization level.
+    The script can be identified by ID, name, or public_secret UUID. When using public_secret, the
+    profile setting is ignored and the default profile is used.
+
+    Anonymous users (no auth header) can only create runs using a script's public_secret.
+    Authenticated users can use ID, name, or public_secret.
+
+    The mode parameter controls run creation behavior:
+    - 'always' (default): Always creates a new run
+    - 'when_not_running': Returns an existing active run if one exists, otherwise creates a new one
+
+    Requires WRITE permission on the organization level (or public_secret for anonymous access).
 
     Args:
         workspace_id (UUID):
@@ -112,7 +128,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]]
+        Response[Union[DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404]]
     """
 
     kwargs = _get_kwargs(
@@ -133,7 +149,9 @@ def sync(
     client: Union[AuthenticatedClient, Client],
     body: CreateRunRequest,
 ) -> Optional[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     """CreateRun
 
@@ -142,7 +160,17 @@ def sync(
     associated with the script version will be used, of which
     the latest profile_version will be used. You may specify a specific profile to use.
 
-    Requires WRITE permission on the organization level.
+    The script can be identified by ID, name, or public_secret UUID. When using public_secret, the
+    profile setting is ignored and the default profile is used.
+
+    Anonymous users (no auth header) can only create runs using a script's public_secret.
+    Authenticated users can use ID, name, or public_secret.
+
+    The mode parameter controls run creation behavior:
+    - 'always' (default): Always creates a new run
+    - 'when_not_running': Returns an existing active run if one exists, otherwise creates a new one
+
+    Requires WRITE permission on the organization level (or public_secret for anonymous access).
 
     Args:
         workspace_id (UUID):
@@ -153,7 +181,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+        Union[DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404]
     """
 
     return sync_detailed(
@@ -169,7 +197,9 @@ async def asyncio_detailed(
     client: Union[AuthenticatedClient, Client],
     body: CreateRunRequest,
 ) -> Response[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     """CreateRun
 
@@ -178,7 +208,17 @@ async def asyncio_detailed(
     associated with the script version will be used, of which
     the latest profile_version will be used. You may specify a specific profile to use.
 
-    Requires WRITE permission on the organization level.
+    The script can be identified by ID, name, or public_secret UUID. When using public_secret, the
+    profile setting is ignored and the default profile is used.
+
+    Anonymous users (no auth header) can only create runs using a script's public_secret.
+    Authenticated users can use ID, name, or public_secret.
+
+    The mode parameter controls run creation behavior:
+    - 'always' (default): Always creates a new run
+    - 'when_not_running': Returns an existing active run if one exists, otherwise creates a new one
+
+    Requires WRITE permission on the organization level (or public_secret for anonymous access).
 
     Args:
         workspace_id (UUID):
@@ -189,7 +229,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]]
+        Response[Union[DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404]]
     """
 
     kwargs = _get_kwargs(
@@ -208,7 +248,9 @@ async def asyncio(
     client: Union[AuthenticatedClient, Client],
     body: CreateRunRequest,
 ) -> Optional[
-    Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+    Union[
+        DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404
+    ]
 ]:
     """CreateRun
 
@@ -217,7 +259,17 @@ async def asyncio(
     associated with the script version will be used, of which
     the latest profile_version will be used. You may specify a specific profile to use.
 
-    Requires WRITE permission on the organization level.
+    The script can be identified by ID, name, or public_secret UUID. When using public_secret, the
+    profile setting is ignored and the default profile is used.
+
+    Anonymous users (no auth header) can only create runs using a script's public_secret.
+    Authenticated users can use ID, name, or public_secret.
+
+    The mode parameter controls run creation behavior:
+    - 'always' (default): Always creates a new run
+    - 'when_not_running': Returns an existing active run if one exists, otherwise creates a new one
+
+    Requires WRITE permission on the organization level (or public_secret for anonymous access).
 
     Args:
         workspace_id (UUID):
@@ -228,7 +280,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404, RunResponse]
+        Union[DetailedRunResponse, ErrorResponse400, ErrorResponse401, ErrorResponse403, ErrorResponse404]
     """
 
     return (

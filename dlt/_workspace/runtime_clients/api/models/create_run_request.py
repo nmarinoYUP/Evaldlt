@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Generator, Optional, TextIO, Ty
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.run_mode import RunMode
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="CreateRunRequest")
@@ -13,17 +14,25 @@ T = TypeVar("T", bound="CreateRunRequest")
 class CreateRunRequest:
     """
     Attributes:
-        script_id_or_name (str): The ID or name of the script to run
+        script_id_or_name_or_secret (str): The ID, name, or public_secret UUID of the script to run. When using
+            public_secret, the profile setting is ignored and the default profile is used.
+        mode (Union[Unset, RunMode]): Run creation mode. 'always' creates a new run every time. 'when_not_running'
+            returns an existing active run if one exists, otherwise creates a new one.
         profile (Union[None, Unset, str]): The name of the profile to use for the run, will default to the default
-            profile of the script
+            profile of the script. Ignored when using public_secret.
     """
 
-    script_id_or_name: str
+    script_id_or_name_or_secret: str
+    mode: Union[Unset, RunMode] = UNSET
     profile: Union[None, Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        script_id_or_name = self.script_id_or_name
+        script_id_or_name_or_secret = self.script_id_or_name_or_secret
+
+        mode: Union[Unset, str] = UNSET
+        if not isinstance(self.mode, Unset):
+            mode = self.mode.value
 
         profile: Union[None, Unset, str]
         if isinstance(self.profile, Unset):
@@ -35,9 +44,11 @@ class CreateRunRequest:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "script_id_or_name": script_id_or_name,
+                "script_id_or_name_or_secret": script_id_or_name_or_secret,
             }
         )
+        if mode is not UNSET:
+            field_dict["mode"] = mode
         if profile is not UNSET:
             field_dict["profile"] = profile
 
@@ -46,7 +57,14 @@ class CreateRunRequest:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        script_id_or_name = d.pop("script_id_or_name")
+        script_id_or_name_or_secret = d.pop("script_id_or_name_or_secret")
+
+        _mode = d.pop("mode", UNSET)
+        mode: Union[Unset, RunMode]
+        if isinstance(_mode, Unset):
+            mode = UNSET
+        else:
+            mode = RunMode(_mode)
 
         def _parse_profile(data: object) -> Union[None, Unset, str]:
             if data is None:
@@ -58,7 +76,8 @@ class CreateRunRequest:
         profile = _parse_profile(d.pop("profile", UNSET))
 
         create_run_request = cls(
-            script_id_or_name=script_id_or_name,
+            script_id_or_name_or_secret=script_id_or_name_or_secret,
+            mode=mode,
             profile=profile,
         )
 

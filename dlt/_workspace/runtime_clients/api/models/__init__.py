@@ -25,12 +25,14 @@ from .logs_response import LogsResponse
 from .me_response import MeResponse
 from .organization_response import OrganizationResponse
 from .ping_response import PingResponse
+from .run_mode import RunMode
 from .run_response import RunResponse
 from .run_status import RunStatus
 from .run_trigger_type import RunTriggerType
 from .script_response import ScriptResponse
 from .script_type import ScriptType
 from .script_version_response import ScriptVersionResponse
+from .update_script_request import UpdateScriptRequest
 from .workspace_response import WorkspaceResponse
 
 __all__ = (
@@ -59,11 +61,13 @@ __all__ = (
     "MeResponse",
     "OrganizationResponse",
     "PingResponse",
+    "RunMode",
     "RunResponse",
     "RunStatus",
     "RunTriggerType",
     "ScriptResponse",
     "ScriptType",
     "ScriptVersionResponse",
+    "UpdateScriptRequest",
     "WorkspaceResponse",
 )

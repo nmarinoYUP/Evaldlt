@@ -30,8 +30,8 @@ class DetailedRunResponse:
         number (int): The number of the run. Will increment for each new run of the script
         script (ScriptResponse):
         script_version_id (UUID): The ID of the script version that will be used when running the script
-        status (RunStatus):
-        trigger (RunTriggerType):
+        status (RunStatus): The status of the run
+        trigger (RunTriggerType): The trigger of the run. Scripts can be triggered manually or by a schedule
         workspace_id (UUID): The ID of the workspace the run belongs to
         duration (Union[None, Unset, int]): The time the run took in seconds
         logs (Union[None, Unset, str]): A link to the logs of the run
