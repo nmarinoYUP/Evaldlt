@@ -800,11 +800,11 @@ def run_script(
         client=api_client,
         workspace_id=_to_uuid(auth_service.workspace_id),
         body=create_run.CreateRunRequest(
-            script_id_or_name=script_file_name,
+            script_id_or_name_or_secret=script_file_name,
             profile=None,
         ),
     )
-    if isinstance(create_run_result.parsed, create_run.RunResponse):
+    if isinstance(create_run_result.parsed, create_run.DetailedRunResponse):
         fmt.echo("Job %s run successfully" % (fmt.bold(str(script_file_name))))
         if is_interactive:
             url = create_script_result.parsed.script_url
@@ -1176,11 +1176,11 @@ def create_job_run(
         client=api_client,
         workspace_id=_to_uuid(auth_service.workspace_id),
         body=create_run.CreateRunRequest(
-            script_id_or_name=script_path_or_job_name,
+            script_id_or_name_or_secret=script_path_or_job_name,
             profile=None,
         ),
     )
-    if isinstance(res.parsed, create_run.RunResponse):
+    if isinstance(res.parsed, create_run.DetailedRunResponse):
         fmt.echo(
             tabulate(
                 [_extract_keys(res.parsed.to_dict(), JOB_RUN_HEADERS)], headers=JOB_RUN_HEADERS
