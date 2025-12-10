@@ -395,7 +395,8 @@ const sidebars = {
             keywords: ["snowflake"]
           },
           items: [
-            "walkthroughs/run-in-snowflake/run-in-snowflake"
+            "walkthroughs/run-in-snowflake/run-in-snowflake",
+            "walkthroughs/run-in-snowflake/database-connector-app"
           ]
         }
       ]
