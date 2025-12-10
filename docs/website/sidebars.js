@@ -394,7 +394,6 @@ const sidebars = {
           items: [
             "walkthroughs/run-in-snowflake/run-in-snowflake",
             "walkthroughs/run-in-snowflake/database-connector-app"
-            "walkthroughs/run-in-snowflake/application-architecture"
           ]
         }
       ]
