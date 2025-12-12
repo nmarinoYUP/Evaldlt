@@ -783,11 +783,14 @@ class FilesystemClient(
         for filepath in all_files:
             filename = os.path.splitext(os.path.basename(filepath))[0]
             fileparts = filename.split(FILENAME_SEPARATOR)
-            if len(fileparts) != 3:
+            if len(fileparts) < 3:
                 continue
+            # pipeline name could include `FILENAME_SEPARATOR`, if so we have to put it back together
+            *pipeline_name_parts, load_id, version_hash = fileparts
+            pipeline_name_from_file = FILENAME_SEPARATOR.join(pipeline_name_parts)
             # Filters only if pipeline_name provided
-            if pipeline_name is None or fileparts[0] == pipeline_name:
-                yield filepath, fileparts
+            if pipeline_name is None or pipeline_name_from_file == pipeline_name:
+                yield filepath, [pipeline_name_from_file, load_id, version_hash]
 
     def _store_load(self, load_id: str) -> None:
         # write entry to load "table"
