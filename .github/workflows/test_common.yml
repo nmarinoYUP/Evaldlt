@@ -6,6 +6,7 @@ on:
 
 env:
   RUNTIME__LOG_LEVEL: ERROR
+  PYTHONHASHSEED: 0
 
   # we need the secrets only for the rest_api_pipeline tests which are in tests/sources
   # so we inject them only at the end
@@ -102,8 +103,21 @@ jobs:
         run: uv sync ${{ matrix.uv_sync_args }} --group sentry-sdk
     
       - name: Run common tests with minimum dependencies
-        run: |
-          pytest tests/common tests/normalize tests/reflection tests/plugins tests/load/test_dummy_client.py tests/extract/test_extract.py tests/extract/test_sources.py tests/pipeline/test_pipeline_state.py ${{ matrix.pytest_args }}
+        run: >
+          uv run pytest
+          -p xdist
+          -n auto
+          --dist=loadscope
+          --rootdir=.
+          tests/common
+          tests/normalize
+          tests/reflection
+          tests/plugins
+          tests/load/test_dummy_client.py
+          tests/extract/test_extract.py
+          tests/extract/test_sources.py
+          tests/pipeline/test_pipeline_state.py
+          ${{ matrix.pytest_args }}
 
       - name: Install min dependencies to import core source
         run: uv sync ${{ matrix.uv_sync_args }} --group sentry-sdk --extra sql_database
@@ -116,8 +130,16 @@ jobs:
         run: uv sync ${{ matrix.uv_sync_args }} --extra duckdb --group sentry-sdk
 
       - name: Run pipeline smoke tests with minimum deps
-        run: |
-          pytest tests/pipeline/test_pipeline.py tests/pipeline/test_import_export_schema.py tests/sources/rest_api/integration/ ${{ matrix.pytest_args }}
+        run: >
+          uv run pytest
+          -p xdist
+          -n auto
+          --dist=loadscope
+          --rootdir=.
+          tests/pipeline/test_pipeline.py
+          tests/pipeline/test_import_export_schema.py
+          tests/sources/rest_api/integration/
+          ${{ matrix.pytest_args }}
 
       - name: Install pyarrow
         run: uv sync ${{ matrix.uv_sync_args }} --extra duckdb --extra cli --extra parquet --group sentry-sdk
@@ -133,8 +155,14 @@ jobs:
         if: matrix.python-version != '3.14'
 
       - name: Run workspace tests
-        run: |
-          pytest tests/workspace ${{ matrix.pytest_args }}
+        run: >
+          uv run pytest
+          -p xdist
+          -n auto
+          --dist=loadscope
+          --rootdir=.
+          tests/workspace
+          ${{ matrix.pytest_args }}
         if: matrix.python-version != '3.14'
 
       - name: Install pipeline and sources dependencies
@@ -142,8 +170,19 @@ jobs:
         if: matrix.python-version != '3.14'
 
       - name: Run extract and pipeline tests
-        run: |
-          pytest tests/extract tests/pipeline tests/libs tests/destinations tests/dataset tests/sources ${{ matrix.pytest_args }}
+        run: >
+          uv run pytest
+          -p xdist
+          -n auto
+          --dist=loadscope
+          --rootdir=.
+          tests/extract
+          tests/pipeline
+          tests/libs
+          tests/destinations
+          tests/dataset
+          tests/sources
+          ${{ matrix.pytest_args }}
         if: matrix.python-version != '3.14'
 
       # here we upgrade sql alchemy to 2 an run the sql_database tests again
@@ -152,8 +191,13 @@ jobs:
         if: matrix.python-version != '3.14'
 
       - name: Run extract and pipeline tests 
-        run: |
-          pytest tests/sources/sql_database
+        run: >
+          uv run pytest
+          -p xdist
+          -n auto
+          --dist=loadscope
+          --rootdir=.
+          tests/sources/sql_database
         if: matrix.python-version != '3.14'
   matrix_job_required_check:
     name: common | common tests
